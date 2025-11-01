@@ -1,0 +1,44 @@
+from PIL import Image, ImageOps, ImageFilter, Image
+img_path = "/mnt/data/5B6CAAF4-B971-44E4-8031-0D14E010C98D.jpeg"
+img = Image.open(img_path)
+w, h = img.size
+
+# Define a careful crop that keeps the car and the angel, trimming small margins
+left = int(w * 0.03)
+right = int(w * 0.97)
+top = int(h * 0.03)
+bottom = int(h * 0.97)
+crop = img.crop((left, top, right, bottom))
+
+# Optionally add slight rounded corners for a neat finish
+def round_corners(im, radius=30):
+    circle = Image.new('L', (radius * 2, radius * 2), 0)
+    draw = ImageDraw = Image.Draw(circle)
+    draw.ellipse((0, 0, radius * 2, radius * 2), fill=255)
+    alpha = Image.new('L', im.size, 255)
+    w, h = im.size
+    alpha.paste(circle.crop((0, 0, radius, radius)), (0, 0))
+    alpha.paste(circle.crop((0, radius, radius, radius*2)), (0, h-radius))
+    alpha.paste(circle.crop((radius, 0, radius*2, radius)), (w-radius, 0))
+    alpha.paste(circle.crop((radius, radius, radius*2, radius*2)), (w-radius, h-radius))
+    im.putalpha(alpha)
+    return im
+
+# Create and save a clean cropped version
+out_path = "/mnt/data/luda_camry_cropped.png"
+try:
+    # Try to apply rounded corners (if RGBA supported)
+    cropped_rgba = crop.convert("RGBA")
+    rounded = round_corners(cropped_rgba, radius=int(min(crop.size)*0.03))
+    rounded.save(out_path)
+except Exception as e:
+    # Fallback: save normal JPEG if something goes wrong with alpha
+    out_path = "/mnt/data/luda_camry_cropped.jpg"
+    crop.save(out_path, quality=95)
+
+w2, h2 = crop.size
+print(f"Original size: {w}x{h}")
+print(f"Cropped size: {w2}x{h2}")
+print(f"Saved to: {out_path}")
+<img class="car" src="luda_camry_cropped.jpg" alt="Camry 30">
+
